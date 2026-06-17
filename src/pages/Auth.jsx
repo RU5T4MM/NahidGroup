@@ -93,8 +93,9 @@ const Auth = () => {
       const res = await verifyOtp(payload);
       
       if (res.newUser) {
-        setIsNewOtpUser(true);
-        addNotification('Phone verified. Fill profile to complete signup.', 'info');
+        addNotification('Registration is disabled. Only existing accounts can login.', 'error');
+        setOtpSent(false);
+        setOtp('');
       } else {
         addNotification('Logged in successfully via OTP!', 'success');
         navigate('/dashboard');
@@ -587,27 +588,12 @@ const Auth = () => {
             {mode === 'login' && (
               <>
                 <div>
-                  Don't have a ledger account?{' '}
-                  <button onClick={() => setMode('signup')} className="text-emerald-600 font-bold hover:underline transition-all">
-                    Sign Up
-                  </button>
-                </div>
-                <div>
                   Prefer instant login?{' '}
                   <button onClick={() => setMode('otp')} className="text-emerald-600 font-bold hover:underline transition-all">
                     Login via OTP Code
                   </button>
                 </div>
               </>
-            )}
-
-            {mode === 'signup' && (
-              <div>
-                Already using Nahid Group?{' '}
-                <button onClick={() => setMode('login')} className="text-emerald-600 font-bold hover:underline transition-all">
-                  Sign In
-                </button>
-              </div>
             )}
 
             {mode === 'otp' && (

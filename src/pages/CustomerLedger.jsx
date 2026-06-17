@@ -175,68 +175,99 @@ const CustomerLedger = () => {
       });
 
       // 1. Business Profile Header (Left-aligned)
+      let imageType = null;
       if (logoDataUrl) {
-        try {
-          const imageType = logoDataUrl.includes('image/png')
-            ? 'PNG'
-            : logoDataUrl.includes('image/jpeg') || logoDataUrl.includes('image/jpg')
-            ? 'JPEG'
-            : null;
+        imageType = logoDataUrl.includes('image/png')
+          ? 'PNG'
+          : logoDataUrl.includes('image/jpeg') || logoDataUrl.includes('image/jpg')
+          ? 'JPEG'
+          : 'PNG';
+      }
 
-          if (imageType) {
-            doc.addImage(logoDataUrl, imageType, 150, 10, 40, 20);
-          }
+      // Top Help Strip
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(11, 60, 122); // Khatabook dark blue
+      doc.text('Start Using Nahid Group Ledger App', 14, 11);
+      
+      doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('Help: +91-7860799398', 160, 11);
+
+      // Dark Blue Header Bar
+      doc.setFillColor(11, 60, 122);
+      doc.rect(14, 15, 182, 16, 'F');
+
+      // Logo inside header bar
+      if (logoDataUrl && imageType) {
+        try {
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(18, 17.5, 11, 11, 2, 2, 'F');
+          doc.addImage(logoDataUrl, imageType, 19, 18.5, 9, 9);
         } catch (imgError) {
-          console.warn('Failed to add logo to PDF:', imgError);
+          console.warn('Failed to add logo inside PDF header bar:', imgError);
         }
       }
 
+      // Brand Text inside Header Bar
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.setTextColor(16, 185, 129); // Emerald color
-      doc.text(user?.businessName || 'Nahid Group', 14, 20);
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Nahid Group', 32, 25.5);
 
-      doc.setFontSize(9);
       doc.setFont('Helvetica', 'normal');
-      doc.setTextColor(100, 116, 139); // Slate-500
-      doc.text(`Proprietor: ${user?.ownerName || 'Nahid'}`, 14, 26);
-      doc.text(`Phone: +91 ${user?.phone || '9999999999'}`, 14, 31);
-      doc.text('Email: groupnahid@gmail.com', 14, 36);
-      doc.text('Nahidgroupmanpower@gmail.com', 14, 41);
+      doc.setFontSize(9.5);
+      doc.text('Business Ledger', 165, 25);
+
+      // Reset text color for standard content
+      doc.setTextColor(30, 41, 59); // slate-800
+
+      // Business Info Box
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text(user?.businessName || 'Nahid Group', 14, 42);
+
+      doc.setFontSize(8);
+      doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Proprietor: ${user?.ownerName || 'Nahid'}`, 14, 47);
+      doc.text(`Phone: +91 ${user?.phone || '7860799398'}`, 14, 51);
+      doc.text('Email: groupnahid@gmail.com', 14, 55);
+      doc.text('Nahidgroupmanpower@gmail.com', 14, 59);
       
       const bAddress = user?.address || '1st GF 105/211/3, opp. Hotel Deep, beside Navrang Hotel, Husainganj, Lucknow, Uttar Pradesh 226001';
-      const splitAddress = doc.splitTextToSize(bAddress, 90);
-      doc.text(splitAddress, 14, 48);
+      const splitAddress = doc.splitTextToSize(`Address: ${bAddress}`, 90);
+      doc.text(splitAddress, 14, 63);
 
       // Statement Metadata (Right-aligned)
       doc.setFont('Helvetica', 'bold');
-      doc.setTextColor(30, 41, 59); // Slate-800
-      doc.setFontSize(12);
-      doc.text('CUSTOMER ACCOUNT STATEMENT', 120, 20);
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(10);
+      doc.text('CUSTOMER ACCOUNT STATEMENT', 120, 42);
       
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Statement Date: ${new Date().toLocaleDateString()}`, 120, 26);
-      doc.text(`Status: Active Record`, 120, 31);
+      doc.text(`Statement Date: ${new Date().toLocaleDateString()}`, 120, 47);
+      doc.text(`Status: Active Record`, 120, 51);
 
       // Add a horizontal rule
       doc.setDrawColor(226, 232, 240); // Slate-200
       doc.setLineWidth(0.5);
-      doc.line(14, 52, 196, 52);
+      doc.line(14, 73, 196, 73);
 
       // 2. Customer Info block (Two-column layout)
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(10.5);
+      doc.setFontSize(9.5);
       doc.setTextColor(30, 41, 59);
-      doc.text('CUSTOMER INFORMATION', 14, 60);
+      doc.text('CUSTOMER INFORMATION', 14, 80);
       
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105);
-      doc.text(`Full Name: ${selectedCust.name}`, 14, 66);
-      doc.text(`Mobile Number: +91 ${selectedCust.phone}`, 14, 71);
-      doc.text(`Email Address: ${selectedCust.email || 'N/A'}`, 14, 76);
+      doc.text(`Full Name: ${selectedCust.name}`, 14, 86);
+      doc.text(`Mobile Number: +91 ${selectedCust.phone}`, 14, 91);
+      doc.text(`Email Address: ${selectedCust.email || 'N/A'}`, 14, 96);
 
       // Client Address (Right side column)
       const cAddr = [
@@ -248,14 +279,14 @@ const CustomerLedger = () => {
       ].filter(Boolean).join(', ');
       
       const splitCAddr = doc.splitTextToSize(`Address: ${cAddr || 'N/A'}`, 80);
-      doc.text(splitCAddr, 115, 66);
+      doc.text(splitCAddr, 115, 86);
       
       if (selectedCust.notes) {
-        doc.text(`Notes: ${selectedCust.notes}`, 115, 78);
+        doc.text(`Notes: ${selectedCust.notes}`, 115, 96);
       }
 
       // Add another divider
-      doc.line(14, 85, 196, 85);
+      doc.line(14, 103, 196, 103);
 
       // 3. Outstanding Balances Summary
       let totalCredit = 0; // got
@@ -267,61 +298,202 @@ const CustomerLedger = () => {
       });
 
       doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(10.5);
+      doc.setFontSize(9.5);
       doc.setTextColor(30, 41, 59);
-      doc.text('STATEMENT FINANCIAL SUMMARY', 14, 93);
+      doc.text('STATEMENT FINANCIAL SUMMARY', 14, 109);
 
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setFont('Helvetica', 'normal');
       doc.setTextColor(100, 116, 139);
-      doc.text('Total Debit (You Gave)', 14, 100);
-      doc.text('Total Credit (You Got)', 74, 100);
-      doc.text('Current Balance', 134, 100);
+      doc.text('Total Debit (You Gave)', 14, 115);
+      doc.text('Total Credit (You Got)', 75, 115);
+      doc.text('Current Balance', 135, 115);
 
-      doc.setFontSize(11);
+      doc.setFontSize(10.5);
       doc.setFont('Helvetica', 'bold');
       doc.setTextColor(239, 68, 68); // Red-500
-      doc.text(`Rs ${totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 14, 107);
+      doc.text(`Rs ${totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 14, 122);
       
       doc.setTextColor(16, 185, 129); // Emerald-600
-      doc.text(`Rs ${totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 74, 107);
+      doc.text(`Rs ${totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 75, 122);
 
       const bal = Number(selectedCust.totalBalance || 0);
       if (bal >= 0) {
         doc.setTextColor(16, 185, 129);
+        doc.text(`Rs ${bal.toLocaleString('en-IN', { minimumFractionDigits: 2 })} Cr`, 135, 122);
       } else {
         doc.setTextColor(239, 68, 68);
+        doc.text(`Rs ${Math.abs(bal).toLocaleString('en-IN', { minimumFractionDigits: 2 })} Dr`, 135, 122);
       }
-      doc.text(`Rs ${bal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 134, 107);
 
-      // 4. Transactions Ledger Table
-      const tableHeaders = [['Date', 'Description', 'Transaction Type', 'Amount (INR)']];
-      const tableData = transactions.map(t => [
-        t.date ? new Date(t.date).toLocaleDateString() : 'N/A',
-        t.description || 'Ledger entry log',
-        t.type === 'give' ? 'YOU GAVE (DEBIT)' : 'YOU GOT (CREDIT)',
-        `Rs ${Number(t.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
-      ]);
+      // Add another divider
+      doc.line(14, 128, 196, 128);
 
+      // 4. Process Transactions & Month Grouping
+      const sortedTx = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      const txWithBalance = [];
+      let currentBalance = 0;
+      sortedTx.forEach(t => {
+        if (t.type === 'give') {
+          currentBalance += t.amount;
+        } else {
+          currentBalance -= t.amount;
+        }
+        txWithBalance.push({
+          ...t,
+          runningBalance: currentBalance
+        });
+      });
+
+      const getMonthYearKey = (dateStr) => {
+        const d = new Date(dateStr);
+        return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      };
+
+      const grouped = {};
+      txWithBalance.forEach(t => {
+        const key = getMonthYearKey(t.date);
+        if (!grouped[key]) {
+          grouped[key] = [];
+        }
+        grouped[key].push(t);
+      });
+
+      const tableRows = [];
+      let lastRunningBalance = 0;
+      const uniqueMonths = [];
+      
+      txWithBalance.forEach(t => {
+        const key = getMonthYearKey(t.date);
+        if (!uniqueMonths.includes(key)) {
+          uniqueMonths.push(key);
+        }
+      });
+
+      uniqueMonths.forEach(monthKey => {
+        const monthGroup = grouped[monthKey];
+        const openingBal = lastRunningBalance;
+
+        // Add Month Header Row
+        tableRows.push({
+          type: 'monthHeader',
+          date: monthKey,
+          details: `(Opening Balance: Rs ${openingBal.toLocaleString('en-IN', { minimumFractionDigits: 2 })})`,
+          debit: '',
+          credit: '',
+          balance: ''
+        });
+
+        // Add transactions of this month
+        monthGroup.forEach(t => {
+          const txDateObj = new Date(t.date);
+          const formattedDate = txDateObj.toLocaleString('en-US', { day: '2-digit', month: 'short' });
+          
+          tableRows.push({
+            type: 'transaction',
+            date: formattedDate,
+            details: t.description || 'Ledger entry log',
+            debit: t.type === 'give' ? t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '',
+            credit: t.type === 'got' ? t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '',
+            balance: `Rs ${Math.abs(t.runningBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ${t.runningBalance >= 0 ? 'Dr' : 'Cr'}`
+          });
+        });
+
+        // Calculate monthly totals
+        let monthDebits = 0;
+        let monthCredits = 0;
+        monthGroup.forEach(t => {
+          if (t.type === 'give') monthDebits += t.amount;
+          else monthCredits += t.amount;
+        });
+
+        // Add Month Total Row
+        const monthNameOnly = monthKey.split(' ')[0]; // e.g. "April"
+        tableRows.push({
+          type: 'monthTotal',
+          date: `${monthNameOnly} Total`,
+          details: '',
+          debit: `Rs ${monthDebits.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+          credit: `Rs ${monthCredits.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+          balance: ''
+        });
+
+        // Set last running balance for next month's opening balance
+        lastRunningBalance = monthGroup[monthGroup.length - 1].runningBalance;
+      });
+
+      // 5. Generate Table in jsPDF
       autoTable(doc, {
-        head: tableHeaders,
-        body: tableData,
-        startY: 115,
-        theme: 'striped',
-        headStyles: { fillColor: [15, 23, 42], halign: 'left' }, // slate-900
-        columnStyles: {
-          0: { cellWidth: 35 },
-          1: { cellWidth: 'auto' },
-          2: { cellWidth: 45 },
-          3: { cellWidth: 40, halign: 'right' }
+        columns: [
+          { header: 'Date', dataKey: 'date' },
+          { header: 'Details', dataKey: 'details' },
+          { header: 'Debit(-)', dataKey: 'debit' },
+          { header: 'Credit(+)', dataKey: 'credit' },
+          { header: 'Balance', dataKey: 'balance' }
+        ],
+        body: tableRows,
+        startY: 134,
+        theme: 'plain',
+        headStyles: {
+          fillColor: [248, 250, 252], // slate-50
+          textColor: [15, 23, 42], // slate-900
+          fontStyle: 'bold',
+          lineColor: [148, 163, 184], // slate-400
+          lineWidth: { bottom: 1 }
         },
-        styles: { fontSize: 8.5 },
+        columnStyles: {
+          date: { cellWidth: 25 },
+          details: { cellWidth: 'auto' },
+          debit: { cellWidth: 32, halign: 'right' },
+          credit: { cellWidth: 32, halign: 'right' },
+          balance: { cellWidth: 32, halign: 'right' }
+        },
+        styles: {
+          fontSize: 8.5,
+          cellPadding: 3,
+          lineColor: [241, 245, 249], // slate-100
+          lineWidth: { bottom: 0.5 }
+        },
         didParseCell: (data) => {
-          if (data.column.index === 2) {
-            if (data.cell.text[0] === 'YOU GAVE (DEBIT)') {
-              data.cell.styles.textColor = [239, 68, 68]; // Red-500
-            } else {
-              data.cell.styles.textColor = [16, 185, 129]; // Emerald-600
+          const rowRaw = data.row.raw;
+          if (rowRaw) {
+            const rowType = rowRaw.type;
+            if (rowType === 'monthHeader') {
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fillColor = [241, 245, 249]; // slate-100
+              data.cell.styles.textColor = [30, 41, 59]; // slate-800
+              data.cell.styles.lineColor = [226, 232, 240];
+              data.cell.styles.lineWidth = { top: 0.5, bottom: 0.5 };
+              if (data.column.dataKey === 'balance') {
+                data.cell.styles.textColor = [100, 116, 139]; // slate-500
+              }
+            } else if (rowType === 'monthTotal') {
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fillColor = [255, 255, 255];
+              data.cell.styles.textColor = [30, 41, 59];
+              data.cell.styles.lineColor = [203, 213, 225]; // slate-300
+              data.cell.styles.lineWidth = { top: 1, bottom: 1 };
+              if (data.column.dataKey === 'debit') {
+                data.cell.styles.textColor = [239, 68, 68]; // Red for total debit
+              } else if (data.column.dataKey === 'credit') {
+                data.cell.styles.textColor = [16, 185, 129]; // Green for total credit
+              }
+            } else if (rowType === 'transaction') {
+              if (data.column.dataKey === 'debit' && data.cell.text[0]) {
+                data.cell.styles.fillColor = [254, 242, 242]; // red-50
+                data.cell.styles.textColor = [239, 68, 68]; // red-500
+              } else if (data.column.dataKey === 'credit' && data.cell.text[0]) {
+                data.cell.styles.fillColor = [240, 253, 250]; // emerald-50
+                data.cell.styles.textColor = [16, 185, 129]; // emerald-600
+              } else if (data.column.dataKey === 'balance') {
+                const balText = data.cell.text[0] || '';
+                if (balText.includes('Dr')) {
+                  data.cell.styles.textColor = [239, 68, 68];
+                } else if (balText.includes('Cr')) {
+                  data.cell.styles.textColor = [16, 185, 129];
+                }
+              }
             }
           }
         }
