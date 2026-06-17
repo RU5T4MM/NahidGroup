@@ -62,9 +62,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Brand Logo Header */}
         <div className="flex items-center gap-3 px-6 h-20 border-b border-slate-50 dark:border-dark-850">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl premium-gradient shadow-md shadow-emerald-500/20">
-            <span className="text-xl font-bold text-white">K</span>
-          </div>
+          <img src="/nahid-logo.png" alt="Nahid Group Logo" className="w-10 h-10 object-contain rounded-xl" />
           <div className="flex-1">
             <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-dark-50">{t.appName}</h1>
             <p className="text-xs text-emerald-600 dark:text-emerald-500 font-medium">Business Ledger</p>

@@ -45,7 +45,7 @@ const Layout = () => {
           </button>
           
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg premium-gradient flex items-center justify-center font-bold text-white text-sm">N</div>
+            <img src="/nahid-logo.png" alt="Nahid Group Logo" className="w-8 h-8 object-contain rounded-lg" />
             <span className="font-bold text-slate-800 dark:text-dark-100">Nahid Group</span>
           </div>
 

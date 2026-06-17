@@ -153,7 +153,7 @@ const Auth = () => {
 
         {/* Logo/Header */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl premium-gradient text-white font-bold text-xl shadow-lg shadow-emerald-500/25">K</div>
+          <img src="/nahid-logo.png" alt="Nahid Group Logo" className="w-10 h-10 object-contain rounded-xl" />
           <span className="font-bold text-lg tracking-tight">Nahid Group Ledger</span>
         </div>
 
@@ -221,7 +221,7 @@ const Auth = () => {
           
           {/* Brand Logo and Title */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl premium-gradient text-white font-bold text-2xl shadow-lg shadow-emerald-500/25">K</div>
+            <img src="/nahid-logo.png" alt="Nahid Group Logo" className="w-12 h-12 object-contain rounded-2xl" />
             <h2 className="text-2xl font-black text-slate-800 dark:text-dark-50">
               {mode === 'login' && 'Welcome Back'}
               {mode === 'signup' && 'Create Your Store'}
