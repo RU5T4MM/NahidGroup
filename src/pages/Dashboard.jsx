@@ -479,15 +479,12 @@ const Dashboard = () => {
             </div>
             
             <div className="bg-slate-50 dark:bg-dark-850 p-4 rounded-2xl flex flex-col items-center border border-dashed border-slate-200 dark:border-dark-800">
-              <div className="bg-white p-3 rounded-xl shadow-md relative border border-slate-100">
+              <div className="bg-white p-2 rounded-xl shadow-md relative border border-slate-100 max-w-[220px]">
                 <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=groupnahid@okaxis&pn=${user?.businessName || "Nahid Group"}&cu=INR`)}`} 
+                  src="/paymentScanner.jpeg" 
                   alt="UPI Payment QR Code"
-                  className="w-44 h-44"
+                  className="w-full h-auto object-contain rounded-lg"
                 />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-md">
-                  N
-                </div>
               </div>
               <span className="text-[9px] text-slate-400 mt-3.5 font-bold uppercase tracking-wide">Scan via PhonePe, GPay, Paytm or UPI Apps</span>
             </div>

@@ -14,7 +14,9 @@ import {
   MessageCircle,
   X,
   UserPlus,
-  FileDown
+  FileDown,
+  QrCode,
+  Edit2
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -67,8 +69,21 @@ const CustomerLedger = () => {
   const [txDesc, setTxDesc] = useState('');
   const [txDate, setTxDate] = useState('');
   const [txFile, setTxFile] = useState(null);
-
   const fileInputRef = useRef(null);
+
+  // Edit Modals and Fields
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showEditCust, setShowEditCust] = useState(false);
+  const [showEditTx, setShowEditTx] = useState(false);
+  const [editingTx, setEditingTx] = useState(null);
+
+  // Edit Form Fields for Transaction
+  const [editTxAmount, setEditTxAmount] = useState('');
+  const [editTxDesc, setEditTxDesc] = useState('');
+  const [editTxDate, setEditTxDate] = useState('');
+  const [editTxType, setEditTxType] = useState('give');
+  const [editTxFile, setEditTxFile] = useState(null);
+  const editFileInputRef = useRef(null);
 
   // Fetch customer records
   const loadCustomers = async () => {
@@ -155,6 +170,112 @@ const CustomerLedger = () => {
       setCustNotes('');
       setShowAddCust(false);
       setSelectedCust(data);
+    } catch (err) {
+      addNotification(err.message, 'error');
+    }
+  };
+
+  // Edit customer open form
+  const openEditCustomer = () => {
+    if (!selectedCust) return;
+    setCustName(selectedCust.name || '');
+    setCustPhone(selectedCust.phone || '');
+    setCustEmail(selectedCust.email || '');
+    setCustAddress(selectedCust.address || '');
+    setCustCity(selectedCust.city || '');
+    setCustState(selectedCust.state || '');
+    setCustCountry(selectedCust.country || 'India');
+    setCustPincode(selectedCust.pincode || '');
+    setCustNotes(selectedCust.notes || '');
+    setShowEditCust(true);
+  };
+
+  // Edit customer handler
+  const handleEditCustomer = async (e) => {
+    e.preventDefault();
+    if (!custName || !custPhone) return;
+
+    try {
+      const res = await fetchWithAuth(`/api/customers/${selectedCust._id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ 
+          name: custName, 
+          phone: custPhone, 
+          email: custEmail,
+          address: custAddress,
+          city: custCity,
+          state: custState,
+          country: custCountry,
+          pincode: custPincode,
+          notes: custNotes
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update customer');
+
+      // Update customers array and selectedCust
+      setCustomers(prev => prev.map(c => c._id === selectedCust._id ? data : c).sort((a, b) => a.name.localeCompare(b.name)));
+      setSelectedCust(data);
+      addNotification('Customer updated successfully!', 'success');
+      setShowEditCust(false);
+    } catch (err) {
+      addNotification(err.message, 'error');
+    }
+  };
+
+  // Edit transaction open form
+  const openEditTransaction = (tx) => {
+    setEditingTx(tx);
+    setEditTxAmount(tx.amount.toString());
+    setEditTxDesc(tx.description || '');
+    // Format date as YYYY-MM-DD
+    const d = new Date(tx.date);
+    const dateStr = d.toISOString().split('T')[0];
+    setEditTxDate(dateStr);
+    setEditTxType(tx.type || 'give');
+    setEditTxFile(null); // Clear any pending uploaded file
+    setShowEditTx(true);
+  };
+
+  // Edit transaction handler
+  const handleEditTransaction = async (e) => {
+    e.preventDefault();
+    if (!editTxAmount || isNaN(editTxAmount)) {
+      addNotification('Please enter a valid amount', 'warning');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('amount', editTxAmount);
+      formData.append('description', editTxDesc);
+      formData.append('date', editTxDate);
+      formData.append('type', editTxType);
+      if (editTxFile) formData.append('billImage', editTxFile);
+
+      const res = await fetchWithAuth(`/api/ledger/${editingTx._id}`, {
+        method: 'PUT',
+        body: formData
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update transaction');
+
+      // Update local transactions list
+      setTransactions(prev => prev.map(t => t._id === editingTx._id ? data.transaction : t));
+
+      // Update customer balance on local view
+      setSelectedCust(prev => ({
+        ...prev,
+        totalBalance: data.customerBalance
+      }));
+
+      // Update customer list balances
+      setCustomers(prev => prev.map(c => c._id === selectedCust._id ? { ...c, totalBalance: data.customerBalance } : c));
+
+      addNotification('Transaction updated successfully!', 'success');
+      setShowEditTx(false);
+      setEditingTx(null);
     } catch (err) {
       addNotification(err.message, 'error');
     }
@@ -552,6 +673,11 @@ const CustomerLedger = () => {
         addNotification('Transaction recorded successfully!', 'success');
       }
 
+      // Open WhatsApp notification
+      const txTypeLabel = txType === 'give' ? 'Debited (Gave/Udhaar)' : 'Credited (Got/Payment)';
+      const msg = `Hello ${selectedCust.name},\n\nA new transaction has been logged for you at *${user?.businessName || "Nahid Group"}*:\n- Date: ${new Date().toLocaleDateString()}\n- Amount: *₹${parseFloat(txAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}*\n- Status: *${txTypeLabel}*\n- Updated Balance: *₹${Math.abs(result.customerBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}*\n\nThank you!`;
+      window.open(`https://wa.me/91${selectedCust.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+
       // Reset fields
       setTxAmount('');
       setTxDesc('');
@@ -692,7 +818,16 @@ const CustomerLedger = () => {
                   {selectedCust.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-800 dark:text-dark-50 text-base">{selectedCust.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-slate-800 dark:text-dark-50 text-base">{selectedCust.name}</h3>
+                    <button
+                      onClick={openEditCustomer}
+                      className="p-1 text-slate-400 hover:text-emerald-650 hover:bg-slate-100 dark:hover:bg-dark-800 rounded-lg transition-colors"
+                      title="Edit Customer Profile"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <p className="text-xs text-slate-400 font-semibold">{selectedCust.phone} • {selectedCust.email || 'No email'}</p>
                 </div>
               </div>
@@ -714,6 +849,14 @@ const CustomerLedger = () => {
                   title="Generate Account PDF Statement"
                 >
                   <FileDown className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => setShowQrModal(true)}
+                  className="flex items-center justify-center p-3 rounded-2xl bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all dark:bg-teal-950/30 dark:text-teal-500"
+                  title="Show Payment QR Code"
+                >
+                  <QrCode className="w-5 h-5" />
                 </button>
 
                 {selectedCust.totalBalance > 0 && (
@@ -795,13 +938,22 @@ const CustomerLedger = () => {
                         </div>
 
                         {isOnline && (
-                          <button
-                            onClick={() => handleDeleteTransaction(t._id)}
-                            className="p-2 text-slate-350 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all"
-                            title="Delete Ledger Log"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => openEditTransaction(t)}
+                              className="p-2 text-slate-350 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl transition-all"
+                              title="Edit Ledger Log"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTransaction(t._id)}
+                              className="p-2 text-slate-350 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all"
+                              title="Delete Ledger Log"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -880,7 +1032,7 @@ const CustomerLedger = () => {
                   value={custName}
                   onChange={(e) => setCustName(e.target.value)}
                   className="input-field text-xs py-1.5"
-                  placeholder="Ramesh Verma"
+                  placeholder="Enter Full Name"
                   required
                 />
               </div>
@@ -893,7 +1045,7 @@ const CustomerLedger = () => {
                     value={custPhone}
                     onChange={(e) => setCustPhone(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="9876543210"
+                    placeholder="Enter Mobile Number"
                     required
                   />
                 </div>
@@ -904,7 +1056,7 @@ const CustomerLedger = () => {
                     value={custEmail}
                     onChange={(e) => setCustEmail(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="customer@email.com"
+                    placeholder="Enter Email Address"
                   />
                 </div>
               </div>
@@ -916,7 +1068,7 @@ const CustomerLedger = () => {
                   value={custAddress}
                   onChange={(e) => setCustAddress(e.target.value)}
                   className="input-field text-xs py-1.5"
-                  placeholder="Street name, landmark..."
+                  placeholder="Enter Complete Address"
                 />
               </div>
 
@@ -928,7 +1080,7 @@ const CustomerLedger = () => {
                     value={custCity}
                     onChange={(e) => setCustCity(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="Lucknow"
+                    placeholder="Enter City"
                   />
                 </div>
                 <div className="space-y-1">
@@ -938,7 +1090,7 @@ const CustomerLedger = () => {
                     value={custState}
                     onChange={(e) => setCustState(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="Uttar Pradesh"
+                    placeholder="Enter State"
                   />
                 </div>
               </div>
@@ -951,7 +1103,7 @@ const CustomerLedger = () => {
                     value={custPincode}
                     onChange={(e) => setCustPincode(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="226001"
+                    placeholder="Enter Pincode"
                   />
                 </div>
                 <div className="space-y-1">
@@ -961,7 +1113,7 @@ const CustomerLedger = () => {
                     value={custCountry}
                     onChange={(e) => setCustCountry(e.target.value)}
                     className="input-field text-xs py-1.5"
-                    placeholder="India"
+                    placeholder="Enter Country"
                   />
                 </div>
               </div>
@@ -972,7 +1124,7 @@ const CustomerLedger = () => {
                   value={custNotes}
                   onChange={(e) => setCustNotes(e.target.value)}
                   className="input-field text-xs py-1.5 min-h-[60px]"
-                  placeholder="Any extra details, credit limits..."
+                  placeholder="Enter Notes / Remarks"
                 />
               </div>
 
@@ -1091,6 +1243,269 @@ const CustomerLedger = () => {
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== 4. MODAL: QR SCANNER PREVIEW ==================== */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-dark-900 border border-slate-100 dark:border-dark-800 rounded-3xl p-6 max-w-sm w-full space-y-4 animate-scale-in relative">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-dark-50 text-base">Payment QR Code</h3>
+              <button onClick={() => setShowQrModal(false)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="bg-slate-50 dark:bg-dark-850 p-4 rounded-2xl flex flex-col items-center border border-dashed border-slate-200 dark:border-dark-800">
+              <div className="bg-white p-2 rounded-xl shadow-md border border-slate-100 max-w-[220px]">
+                <img 
+                  src="/paymentScanner.jpeg" 
+                  alt="UPI Payment QR Code"
+                  className="w-full h-auto object-contain rounded-lg"
+                />
+              </div>
+              <span className="text-[9px] text-slate-400 mt-3.5 font-bold uppercase tracking-wide">Scan via PhonePe, GPay, Paytm or UPI Apps</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== 5. MODAL: EDIT CUSTOMER ==================== */}
+      {showEditCust && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-dark-900 border border-slate-100 dark:border-dark-800 rounded-3xl p-6 max-w-md w-full space-y-4 animate-scale-in">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-dark-50 text-base">Edit Customer Profile</h3>
+              <button onClick={() => setShowEditCust(false)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-5 h-5" /></button>
+            </div>
+
+            <form onSubmit={handleEditCustomer} className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Full Name</label>
+                <input
+                  type="text"
+                  value={custName}
+                  onChange={(e) => setCustName(e.target.value)}
+                  className="input-field text-xs py-1.5"
+                  placeholder="Enter Full Name"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">Mobile Number</label>
+                  <input
+                    type="tel"
+                    value={custPhone}
+                    onChange={(e) => setCustPhone(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter Mobile Number"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">Email Address</label>
+                  <input
+                    type="email"
+                    value={custEmail}
+                    onChange={(e) => setCustEmail(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter Email Address"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Complete Address</label>
+                <input
+                  type="text"
+                  value={custAddress}
+                  onChange={(e) => setCustAddress(e.target.value)}
+                  className="input-field text-xs py-1.5"
+                  placeholder="Enter Complete Address"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">City</label>
+                  <input
+                    type="text"
+                    value={custCity}
+                    onChange={(e) => setCustCity(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter City"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">State</label>
+                  <input
+                    type="text"
+                    value={custState}
+                    onChange={(e) => setCustState(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter State"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">Pincode</label>
+                  <input
+                    type="text"
+                    value={custPincode}
+                    onChange={(e) => setCustPincode(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter Pincode"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">Country</label>
+                  <input
+                    type="text"
+                    value={custCountry}
+                    onChange={(e) => setCustCountry(e.target.value)}
+                    className="input-field text-xs py-1.5"
+                    placeholder="Enter Country"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Notes / Remarks</label>
+                <textarea
+                  value={custNotes}
+                  onChange={(e) => setCustNotes(e.target.value)}
+                  className="input-field text-xs py-1.5 min-h-[60px]"
+                  placeholder="Enter Notes / Remarks"
+                />
+              </div>
+
+              <button type="submit" className="w-full btn-primary mt-2">
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== 6. MODAL: EDIT TRANSACTION ==================== */}
+      {showEditTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-dark-900 border border-slate-100 dark:border-dark-800 rounded-3xl p-6 max-w-sm w-full space-y-4 animate-scale-in">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-800 dark:text-dark-50 text-base">
+                Edit Ledger Entry
+              </h3>
+              <button onClick={() => { setShowEditTx(false); setEditingTx(null); }} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-5 h-5" /></button>
+            </div>
+
+            <form onSubmit={handleEditTransaction} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500">Transaction Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditTxType('give')}
+                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all border ${
+                      editTxType === 'give'
+                        ? 'bg-rose-550 border-rose-200 text-rose-600 dark:bg-rose-950/20 dark:border-rose-900'
+                        : 'border-slate-100 dark:border-dark-800 text-slate-500 dark:text-dark-400'
+                    }`}
+                  >
+                    You Gave (Debit)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTxType('got')}
+                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all border ${
+                      editTxType === 'got'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-950/20 dark:border-emerald-900'
+                        : 'border-slate-100 dark:border-dark-800 text-slate-500 dark:text-dark-400'
+                    }`}
+                  >
+                    You Got (Credit)
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">{t.amount} (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editTxAmount}
+                  onChange={(e) => setEditTxAmount(e.target.value)}
+                  className="input-field text-lg font-black text-slate-900 dark:text-dark-50"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">{t.description}</label>
+                <input
+                  type="text"
+                  value={editTxDesc}
+                  onChange={(e) => setEditTxDesc(e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="E.g., 2kg Sugar box, cash payment..."
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Transaction Date</label>
+                <input
+                  type="date"
+                  value={editTxDate}
+                  onChange={(e) => setEditTxDate(e.target.value)}
+                  className="input-field text-sm text-slate-500"
+                />
+              </div>
+
+              {/* Bill Attachment field */}
+              {editTxType === 'give' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">{t.attachBill} (Replaces existing)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      ref={editFileInputRef}
+                      onChange={(e) => setEditTxFile(e.target.files[0])}
+                      className="hidden"
+                      accept="image/*,application/pdf"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => editFileInputRef.current.click()}
+                      className="flex-1 btn-secondary text-xs py-2 flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      {editTxFile ? editTxFile.name.substring(0, 15) : 'Select New File'}
+                    </button>
+                    {editTxFile && (
+                      <button
+                        type="button"
+                        onClick={() => setEditTxFile(null)}
+                        className="p-2 border rounded-xl hover:text-rose-550"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className={`w-full py-2.5 rounded-xl font-bold text-white shadow-lg ${
+                  editTxType === 'give' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/10' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10'
+                }`}
+              >
+                Save Changes
+              </button>
+            </form>
           </div>
         </div>
       )}

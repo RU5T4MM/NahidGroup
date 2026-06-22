@@ -113,13 +113,22 @@ const Home = () => {
           
           {/* Right side contact & Action */}
           <div className="flex items-center gap-4">
-            <a
-              href="tel:+917860799398"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm border border-slate-150 transition-all cursor-pointer"
-            >
-              <Phone className="w-4 h-4 text-emerald-600" />
-              <span>+91-7860799398</span>
-            </a>
+            <div className="hidden sm:flex flex-col items-end">
+              <a
+                href="tel:+917860799398"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-150 transition-all cursor-pointer"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                <span>+91-7860799398</span>
+              </a>
+              <a
+                href="tel:+919005601046"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-150 transition-all mt-1 cursor-pointer"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                <span>+91-9005601046</span>
+              </a>
+            </div>
             
             <Link to="/login" className="btn-primary text-sm shadow-md shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all">
               Log In
@@ -412,7 +421,7 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">UPI</div>
               <div className="flex-grow">
                 <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide block">Integrated Payment QR</span>
-                <span className="text-xs font-bold text-slate-650 block">UPI ID: groupnahid@okaxis</span>
+                <span className="text-xs font-bold text-slate-650 block">UPI ID: 7860799398@pthdfc</span>
               </div>
               <span className="text-xs font-extrabold text-slate-400">Scan & Pay</span>
             </div>
@@ -666,9 +675,14 @@ const Home = () => {
             <ul className="space-y-3.5 text-xs font-semibold">
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <a href="tel:+917860799398" className="hover:text-white hover:underline transition-colors block text-slate-300">
-                  +91-7860799398
-                </a>
+                <div className="space-y-1 block text-slate-300">
+                  <a href="tel:+917860799398" className="hover:text-white hover:underline transition-colors block">
+                    +91-7860799398
+                  </a>
+                  <a href="tel:+919005601046" className="hover:text-white hover:underline transition-colors block">
+                    +91-9005601046
+                  </a>
+                </div>
               </li>
               
               <li className="flex items-start gap-2.5">
