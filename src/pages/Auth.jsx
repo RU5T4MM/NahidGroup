@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Phone, KeyRound, Building, User, HelpCircle, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
-  const { login, signup, sendOtp, verifyOtp, forgotPassword, addNotification } = useApp();
+  const { login, signup, sendOtp, verifyOtp, forgotPassword, resetPassword, addNotification } = useApp();
   const navigate = useNavigate();
 
   // Mode state: 'login' | 'signup' | 'otp' | 'forgot'
