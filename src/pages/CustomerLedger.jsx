@@ -746,7 +746,7 @@ const CustomerLedger = () => {
   );
 
   return (
-    <div className="h-[80vh] flex gap-6 animate-fade-in relative">
+    <div className="h-[calc(100vh-7.5rem)] lg:h-[calc(100vh-5rem)] flex gap-6 animate-fade-in relative">
       
       {/* ==================== LEFT Roster PANE: Customers list ==================== */}
       <div className={`w-full lg:w-80 flex flex-col bg-white border border-slate-100 dark:bg-dark-900 dark:border-dark-800 rounded-3xl overflow-hidden ${
@@ -853,8 +853,8 @@ const CustomerLedger = () => {
               </div>
 
               {/* Balances and WhatsApp Reminders */}
-              <div className="flex items-center gap-4">
-                <div className="text-right">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                <div className="text-left sm:text-right">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Outstanding Balance</span>
                   <span className={`text-lg font-black ${
                     selectedCust.totalBalance >= 0 ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-500'
@@ -863,43 +863,45 @@ const CustomerLedger = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={handleGeneratePDF}
-                  className="flex items-center justify-center p-3 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all dark:bg-blue-950/30 dark:text-blue-500"
-                  title="Generate Account PDF Statement"
-                >
-                  <FileDown className="w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={() => setShowQrModal(true)}
-                  className="flex items-center justify-center p-3 rounded-2xl bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all dark:bg-teal-950/30 dark:text-teal-500"
-                  title="Show Payment QR Code"
-                >
-                  <QrCode className="w-5 h-5" />
-                </button>
-
-                {selectedCust.totalBalance > 0 && (
-                  <a
-                    href={getWhatsAppReminderUrl(selectedCust)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center p-3 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all dark:bg-emerald-950/30 dark:text-emerald-500"
-                    title="Send WhatsApp Payment Reminder"
-                  >
-                    <MessageCircle className="w-5 h-5 fill-current" />
-                  </a>
-                )}
-
-                {isOnline && (
+                <div className="flex items-center gap-2 sm:gap-3">
                   <button
-                    onClick={() => handleDeleteCustomer(selectedCust._id)}
-                    className="flex items-center justify-center p-3 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all dark:bg-rose-950/30 dark:text-rose-500"
-                    title="Delete Customer Account"
+                    onClick={handleGeneratePDF}
+                    className="flex items-center justify-center p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all dark:bg-blue-950/30 dark:text-blue-500"
+                    title="Generate Account PDF Statement"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <FileDown className="w-5 h-5" />
                   </button>
-                )}
+
+                  <button
+                    onClick={() => setShowQrModal(true)}
+                    className="flex items-center justify-center p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all dark:bg-teal-950/30 dark:text-teal-500"
+                    title="Show Payment QR Code"
+                  >
+                    <QrCode className="w-5 h-5" />
+                  </button>
+
+                  {selectedCust.totalBalance > 0 && (
+                    <a
+                      href={getWhatsAppReminderUrl(selectedCust)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all dark:bg-emerald-950/30 dark:text-emerald-500"
+                      title="Send WhatsApp Payment Reminder"
+                    >
+                      <MessageCircle className="w-5 h-5 fill-current" />
+                    </a>
+                  )}
+
+                  {isOnline && (
+                    <button
+                      onClick={() => handleDeleteCustomer(selectedCust._id)}
+                      className="flex items-center justify-center p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all dark:bg-rose-950/30 dark:text-rose-500"
+                      title="Delete Customer Account"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
