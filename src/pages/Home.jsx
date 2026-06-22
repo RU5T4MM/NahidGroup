@@ -682,6 +682,9 @@ const Home = () => {
                   <a href="tel:+919005601046" className="hover:text-white hover:underline transition-colors block">
                     +91-9005601046
                   </a>
+                  <a href="tel:+919005601046" className="hover:text-white hover:underline transition-colors block">
+                    +91-9005143452
+                  </a>
                 </div>
               </li>
               
