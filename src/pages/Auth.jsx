@@ -112,9 +112,9 @@ const Auth = () => {
     if (!email) return;
     setLoading(true);
     try {
-      const res = await forgotPassword(email);
-      addNotification(`Reset code sent to email! Code: ${res.resetCode}`, 'success');
-      setResetCodeInput(res.resetCode);
+      await forgotPassword(email);
+      addNotification('Reset code sent to email!', 'success');
+      setResetCodeInput('');
       setMode('reset');
     } catch (err) {
       addNotification(err.message, 'error');
@@ -530,12 +530,6 @@ const Auth = () => {
           {/* ==================== 5. RESET PASSWORD CONFIRM MODE ==================== */}
           {mode === 'reset' && (
             <form onSubmit={handleResetPassword} className="space-y-4">
-              {resetCodeInput && (
-                <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-500 flex flex-col gap-1 shadow-sm">
-                  <span>🔑 PASSWORD RESET SIMULATOR:</span>
-                  <span>Verification code: <strong className="text-sm tracking-widest text-emerald-600 font-bold">{resetCodeInput}</strong></span>
-                </div>
-              )}
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500">6-Digit Reset Code</label>
