@@ -709,6 +709,26 @@ const CustomerLedger = () => {
     }
   };
 
+  // Delete Customer
+  const handleDeleteCustomer = async (custId) => {
+    if (!window.confirm('Are you sure you want to delete this customer and all their ledger history? This action cannot be undone.')) return;
+    try {
+      const res = await fetchWithAuth(`/api/customers/${custId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete customer');
+
+      addNotification('Customer and all ledger history deleted.', 'success');
+      
+      // Update local state: remove customer from list and reset selected customer
+      setCustomers(prev => prev.filter(c => c._id !== custId));
+      setSelectedCust(null);
+    } catch (err) {
+      addNotification(err.message, 'error');
+    }
+  };
+
   // Generate WhatsApp Reminder Link
   const getWhatsAppReminderUrl = (customer) => {
     if (!customer) return '';
@@ -869,6 +889,16 @@ const CustomerLedger = () => {
                   >
                     <MessageCircle className="w-5 h-5 fill-current" />
                   </a>
+                )}
+
+                {isOnline && (
+                  <button
+                    onClick={() => handleDeleteCustomer(selectedCust._id)}
+                    className="flex items-center justify-center p-3 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all dark:bg-rose-950/30 dark:text-rose-500"
+                    title="Delete Customer Account"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 )}
               </div>
             </div>
