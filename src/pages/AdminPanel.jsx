@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const AdminPanel = () => {
-  const { user, fetchWithAuth, addNotification } = useApp();
+  const { user, fetchWithAuth, addNotification, parseResponse } = useApp();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -59,8 +59,7 @@ const AdminPanel = () => {
           address: newAddress
         })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to create user');
+      const data = await parseResponse(res, 'Failed to create user');
 
       addNotification('User created successfully!', 'success');
       setShowCreateUser(false);
@@ -90,14 +89,14 @@ const AdminPanel = () => {
       // Get metrics
       const mRes = await fetchWithAuth('/api/admin/analytics');
       if (mRes.ok) {
-        const mData = await mRes.json();
+        const mData = await parseResponse(mRes);
         setMetrics(mData.metrics);
       }
 
       // Get users list
       const uRes = await fetchWithAuth('/api/admin/users');
       if (uRes.ok) {
-        const uData = await uRes.json();
+        const uData = await parseResponse(uRes);
         setUsersList(uData);
       }
     } catch (e) {
@@ -117,8 +116,7 @@ const AdminPanel = () => {
       const res = await fetchWithAuth(`/api/admin/users/${targetId}/block`, {
         method: 'PUT'
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Block action failed');
+      const data = await parseResponse(res, 'Block action failed');
 
       addNotification(data.message, 'success');
       loadAdminData(); // reload
@@ -138,8 +136,7 @@ const AdminPanel = () => {
         method: 'PUT',
         body: JSON.stringify({ plan: nextPlan, durationDays: 30 })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Plan update failed');
+      const data = await parseResponse(res, 'Plan update failed');
 
       addNotification(data.message, 'success');
       loadAdminData();
@@ -157,8 +154,7 @@ const AdminPanel = () => {
       const res = await fetchWithAuth(`/api/admin/users/${targetId}`, {
         method: 'DELETE'
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Delete failed');
+      const data = await parseResponse(res, 'Delete failed');
 
       addNotification(`Merchant "${businessName}" has been permanently deleted.`, 'success');
       loadAdminData();
@@ -171,8 +167,7 @@ const AdminPanel = () => {
   const handleTriggerBackup = async () => {
     try {
       const res = await fetchWithAuth('/api/admin/backup', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Backup failed');
+      const data = await parseResponse(res, 'Backup failed');
 
       setBackupLog(`Saved backup: ${data.filename} (${data.filepath})`);
       setRestoreFilename(data.filename);
@@ -196,8 +191,7 @@ const AdminPanel = () => {
         method: 'POST',
         body: JSON.stringify({ filename: restoreFilename })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Database restore failed');
+      const data = await parseResponse(res, 'Database restore failed');
 
       addNotification('Database restored successfully!', 'success');
       setRestoreFilename('');

@@ -4,7 +4,7 @@ import { Check, ShieldCheck, Zap, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Pricing = () => {
-  const { user, fetchWithAuth, updateSubscriptionLocal, addNotification } = useApp();
+  const { user, fetchWithAuth, updateSubscriptionLocal, addNotification, parseResponse } = useApp();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -33,8 +33,7 @@ const Pricing = () => {
         method: 'POST',
         body: JSON.stringify({ amount: 499 })
       });
-      const order = await res.json();
-      if (!res.ok) throw new Error(order.message || 'Order creation failed');
+      const order = await parseResponse(res, 'Order creation failed');
 
       // 3. Initiate payment screen
       const options = {
@@ -58,8 +57,7 @@ const Pricing = () => {
               })
             });
 
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok) throw new Error(verifyData.message || 'Payment verification failed');
+            const verifyData = await parseResponse(verifyRes, 'Payment verification failed');
 
             // 5. Update user state locally
             updateSubscriptionLocal(verifyData.user);

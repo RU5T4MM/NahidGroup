@@ -4,7 +4,7 @@ import { useSync } from '../context/SyncContext';
 import { FileSpreadsheet, Printer, Download, Search, FileText, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
 const Reports = () => {
-  const { customers, setCustomers, fetchWithAuth, t, language, addNotification } = useApp();
+  const { customers, setCustomers, fetchWithAuth, t, language, addNotification, parseResponse } = useApp();
   const { isOnline, getCachedCustomers } = useSync();
 
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ const Reports = () => {
       if (isOnline) {
         const res = await fetchWithAuth('/api/customers');
         if (res.ok) {
-          const list = await res.json();
+          const list = await parseResponse(res);
           setCustomers(list);
         }
       } else {

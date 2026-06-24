@@ -3,6 +3,20 @@ import { translations } from '../utils/translations';
 
 const AppContext = createContext();
 
+export const parseResponse = async (res, defaultMsg = 'Request failed') => {
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (e) {
+    data = { message: text || res.statusText };
+  }
+  if (!res.ok) {
+    throw new Error(data.message || defaultMsg);
+  }
+  return data;
+};
+
 export const AppProvider = ({ children }) => {
   // Theme & Language
   const [theme, setTheme] = useState(localStorage.getItem('kb_theme') || 'light');
@@ -88,8 +102,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Signup failed');
+    const data = await parseResponse(res, 'Signup failed');
     
     setToken(data.token);
     setUser(data.user);
@@ -103,8 +116,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Login failed');
+    const data = await parseResponse(res, 'Login failed');
     
     setToken(data.token);
     setUser(data.user);
@@ -118,9 +130,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
-    return data;
+    return await parseResponse(res, 'Failed to send OTP');
   };
 
   const verifyOtp = async (payload) => {
@@ -129,8 +139,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'OTP verification failed');
+    const data = await parseResponse(res, 'OTP verification failed');
 
     // If OTP is verified but registration is incomplete, returns { newUser: true }
     if (data.newUser) {
@@ -149,9 +158,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to request password reset');
-    return data;
+    return await parseResponse(res, 'Failed to request password reset');
   };
 
   const resetPassword = async (email, code, newPassword) => {
@@ -160,9 +167,7 @@ export const AppProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code, newPassword })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to reset password');
-    return data;
+    return await parseResponse(res, 'Failed to reset password');
   };
 
   const updateProfile = async (profileData) => {
@@ -174,8 +179,7 @@ export const AppProvider = ({ children }) => {
       },
       body: JSON.stringify(profileData)
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to update profile');
+    const data = await parseResponse(res, 'Failed to update profile');
     setUser(data.user);
     if (profileData.language) {
       setLanguage(profileData.language);
@@ -247,7 +251,8 @@ export const AppProvider = ({ children }) => {
       updateProfile,
       updateSubscriptionLocal,
       logout,
-      fetchWithAuth
+      fetchWithAuth,
+      parseResponse
     }}>
       {children}
     </AppContext.Provider>

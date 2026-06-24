@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const Invoices = () => {
-  const { user, fetchWithAuth, t, addNotification, language } = useApp();
+  const { user, fetchWithAuth, t, addNotification, language, parseResponse } = useApp();
   const navigate = useNavigate();
 
   const [invoices, setInvoices] = useState([]);
@@ -38,7 +38,7 @@ const Invoices = () => {
     try {
       const res = await fetchWithAuth('/api/invoices');
       if (res.ok) {
-        const data = await res.json();
+        const data = await parseResponse(res);
         setInvoices(data);
       }
     } catch (err) {
@@ -100,8 +100,7 @@ const Invoices = () => {
           notes
         })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Invoice save failed');
+      const data = await parseResponse(res, 'Invoice save failed');
 
       setInvoices(prev => [data, ...prev]);
       addNotification(`Invoice ${data.invoiceNumber} saved!`, 'success');

@@ -22,7 +22,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const CustomerLedger = () => {
-  const { fetchWithAuth, t, addNotification, customers, setCustomers, language, user } = useApp();
+  const { fetchWithAuth, t, addNotification, customers, setCustomers, language, user, parseResponse } = useApp();
   const { isOnline, saveTransaction, getCachedCustomers, cacheCustomersOffline } = useSync();
 
   const [loading, setLoading] = useState(true);
@@ -91,7 +91,7 @@ const CustomerLedger = () => {
       if (isOnline) {
         const res = await fetchWithAuth('/api/customers');
         if (res.ok) {
-          const list = await res.json();
+          const list = await parseResponse(res);
           setCustomers(list);
           cacheCustomersOffline(list);
         }
@@ -118,7 +118,7 @@ const CustomerLedger = () => {
         if (isOnline) {
           const res = await fetchWithAuth(`/api/ledger/customer/${selectedCust._id}`);
           if (res.ok) {
-            const data = await res.json();
+            const data = await parseResponse(res);
             setTransactions(data);
           }
         } else {
@@ -152,8 +152,7 @@ const CustomerLedger = () => {
           notes: custNotes
         })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to add customer');
+      const data = await parseResponse(res, 'Failed to add customer');
 
       setCustomers(prev => [data, ...prev].sort((a, b) => a.name.localeCompare(b.name)));
       addNotification('Customer added successfully!', 'success');
@@ -210,8 +209,7 @@ const CustomerLedger = () => {
           notes: custNotes
         })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to update customer');
+      const data = await parseResponse(res, 'Failed to update customer');
 
       // Update customers array and selectedCust
       setCustomers(prev => prev.map(c => c._id === selectedCust._id ? data : c).sort((a, b) => a.name.localeCompare(b.name)));
@@ -258,8 +256,7 @@ const CustomerLedger = () => {
         body: formData
       });
       
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to update transaction');
+      const data = await parseResponse(res, 'Failed to update transaction');
 
       // Update local transactions list
       setTransactions(prev => prev.map(t => t._id === editingTx._id ? data.transaction : t));
@@ -696,8 +693,7 @@ const CustomerLedger = () => {
       const res = await fetchWithAuth(`/api/ledger/${txId}`, {
         method: 'DELETE'
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to delete transaction');
+      const data = await parseResponse(res, 'Failed to delete transaction');
 
       // Filter local lists
       setTransactions(prev => prev.filter(t => t._id !== txId));
@@ -716,8 +712,7 @@ const CustomerLedger = () => {
       const res = await fetchWithAuth(`/api/customers/${custId}`, {
         method: 'DELETE'
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to delete customer');
+      const data = await parseResponse(res, 'Failed to delete customer');
 
       addNotification('Customer and all ledger history deleted.', 'success');
       

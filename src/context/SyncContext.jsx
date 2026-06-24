@@ -5,7 +5,7 @@ import { getQueue, addToQueue, removeFromQueue, setItem, getItems, clearStore } 
 const SyncContext = createContext();
 
 export const SyncProvider = ({ children }) => {
-  const { fetchWithAuth, addNotification, token, setCustomers, customers } = useApp();
+  const { fetchWithAuth, addNotification, token, setCustomers, customers, parseResponse } = useApp();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncing, setSyncing] = useState(false);
 
@@ -62,7 +62,7 @@ export const SyncProvider = ({ children }) => {
         // Refresh customer list
         const custRes = await fetchWithAuth('/api/customers');
         if (custRes.ok) {
-          const updatedCusts = await custRes.json();
+          const updatedCusts = await parseResponse(custRes);
           setCustomers(updatedCusts);
           // Cache customers in IndexedDB
           await clearStore('customers');
@@ -91,8 +91,7 @@ export const SyncProvider = ({ children }) => {
         method: 'POST',
         body: formData // Form data handles file uploads
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to save transaction');
+      const data = await parseResponse(res, 'Failed to save transaction');
       return data;
     } else {
       // Offline operation - queue transaction details
